@@ -1,15 +1,14 @@
-/************************************************************
- *                    ESLINT CONFIG FILE                    *
- *                                                          *
- * This file contains the custom lint rules for this        *
- * repository. To lint the project, run this command in the *
- * root directory:                                          *
- *                                                          *
- *    npx eslint -c eslint.config.js                        *
- *                                                          *
- * The linter output SHOULD ALWAYS BE CLEAN before any      *
- * commit to keep everything neat and organized.            *
- ************************************************************/
+/************************************************************************
+ *                          ESLINT CONFIG FILE                          *
+ *                                                                      *
+ * This file contains the custom lint rules for this repository. To     *
+ * lint the project, run this command in the root directory:            *
+ *                                                                      *
+ *    npx eslint -c eslint.config.js                                    *
+ *                                                                      *
+ * The linter output SHOULD ALWAYS BE CLEAN before any commit to keep   *
+ * everything neat and organized.                                       *
+ ************************************************************************/
 
 import stylisticJs from '@stylistic/eslint-plugin-js';
 

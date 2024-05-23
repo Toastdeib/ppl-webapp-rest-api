@@ -1,0 +1,50 @@
+const config = {
+    // API config
+    debug: false,
+    port: 12345,
+    botApiPath: 'http://localhost:9001',
+    certPath: '/cert/path/goes/here/',
+    corsOrigin: [ 'http://localhost:3000' ],
+    mysqlHost: 'localhost',
+    mysqlUser: '[MYSQL USERNAME GOES HERE]',
+    mysqlPassword: '[MYSQL PASSWORD GOES HERE]',
+    mysqlDatabase: '[MYSQL DATABASE NAME GOES HERE]',
+    tableSuffix: '',
+    websocketPingInterval: 15000,
+
+    // Event config
+    championSurveyUrl: 'localhost',
+    challengerSurveyUrl: 'localhost',
+    leaderSurveyUrl: 'localhost',
+    surveyStartTimeUtc: '1970-01-01T00:00:00Z',
+    surveyEndTimeUtc: '1970-01-01T00:00:00Z',
+    trainerCardShowTimeUtc: '1970-01-01T00:00:00Z',
+    eventStartTimeUtc: '1970-01-01T00:00:00Z',
+    eventEndTimeUtc: '1970-01-01T00:00:00Z',
+    meetupTimes: [
+        {
+            location: 'Community Room',
+            startTimeUtc: '1970-01-01T00:00:00Z',
+            endTimeUtc: '1970-01-01T00:00:00Z'
+        }
+    ],
+    requiredBadgesForElites: 8,
+    requiredBadgesForChamp: 0,
+    requiredEmblemsForChamp: 4,
+    emblemWeight: 1,
+    maxQueueSize: 20,
+    maxQueuesPerChallenger: 4,
+    bingoBoardWidth: 5,
+    excludedBingoIds: [],
+    excludedTrainerCardIds: [],
+    supportsQueueState: false,
+    supportsBotNotifications: false,
+    showBingoBoard: true,
+    showHowToChallenge: true,
+    showRules: true,
+    showPrizePools: true,
+    showSchedule: true,
+    showMap: true
+};
+
+export default config;
