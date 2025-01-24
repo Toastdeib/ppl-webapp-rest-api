@@ -1,2 +1,4 @@
 **/node_modules
 *.swp
+/src/config/general.js
+/src/config/event

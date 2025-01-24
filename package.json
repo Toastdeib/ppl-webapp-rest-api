@@ -3,9 +3,23 @@
   "version": "1.0.0",
   "description": "",
   "main": "startup.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Alex Levine",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "mysql": "^2.18.1",
+    "winston": "^3.13.0",
+    "winston-daily-rotate-file": "^5.0.0",
+    "ws": "^8.16.0"
+  },
+  "devDependencies": {
+    "@stylistic/eslint-plugin-js": "^1.7.2",
+    "eslint": "^9.1.0"
+  }
 }
