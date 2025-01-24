@@ -25,7 +25,7 @@ The [PAX Pokémon League](https://www.paxpokemonleague.net) (PPL) webapp is a sy
 - **Queuing**: Gym leaders can view and manage the challengers waiting in line to battle them, and challengers can view what queues they're in and do limited queue management themselves.
 - **Battle results**: Gym leaders can record the results of a battle and whether they awarded the challenger a badge as two separate datapoints, allowing for accurate tracking of win/loss rates and badge counts.
 - **Event info**: All users can use the webapp to view various details about the PPL event, including a guide on how to challenge the league, meetup times/locations, rules, prizes, etc.
-- **Signature bingo**: Challengers can participate in a side activity wherein they attempt to fill in a line on a randomly-generated bingo board (created when they register or log in for the first time for a new event) by battling the leaders whose signature Pokémon appear on the board. Squares on the board are filled in after a battle result is recorded, regardless of whether or not a badge was earned.
+- **Signature Bingo**: Challengers can participate in a side activity wherein they attempt to fill in a line on a randomly-generated bingo board (created when they register or log in for the first time for a new event) by battling the leaders whose signature Pokémon appear on the board. Squares on the board are filled in after a battle result is recorded, regardless of whether or not a badge was earned.
 
 [Back to top](#table-of-contents)
 
@@ -47,39 +47,35 @@ The [PAX Pokémon League](https://www.paxpokemonleague.net) (PPL) webapp is a sy
 
 A representation of a user account, with the following properties:
 
+- **ID**: An ID for the account which gets generated when the account is created. Account IDs are 6-byte hex strings (12 characters) and are guaranteed to be unique.
 - **Username**: The name used to log into the system. Usernames **must** be between 4 and 30 characters, and may **only** consist of alphanumeric characters and underscores. Usernames are guaranteed to be unique.
 - **Password**: The password used in conjunction with the username for authentication. Passwords will be hashed with salt for database storage and have a minimum length of 6 with no character restrictions.
-- **ID**: An ID for the account which gets generated when the account is created. Account IDs are 8-byte hex strings (16 characters) and are guaranteed to be unique.
 - **Permissions**: An array of permissions associated with the account. These will be represented internally by bitmask values defined by the [permission constant](#permission), and exposed to clients as boolean flags.
-- **Challenger ID**: The ID of the challenger associated with this account. This ID will only exist on the account if the user is a challenger.
-- **Leader ID**: The ID of the leader associated with this account. This ID will only exist on the account if the user is a leader.
 
 ## Challenger
 
 A representation of a PPL challenger, with the following properties:
 
-- **ID**: An ID for the challenger which maps to the challenger ID field of an account. Challenger IDs are 6-byte hex strings (12 characters), are guaranteed to be unique, and have a one-to-one mapping to accounts.
+- **ID**: An ID for the challenger which gets generated when the challenger is created. Challenger IDs are 8-byte hex strings (16 characters), are guaranteed to be unique, and have a one-to-one mapping to accounts.
 - **Event:** The PPL event the challenger belongs to. When a user logs in, if a challenger does not exist for their ID on the current event, a new one will be created.
+- **Account ID**: The ID of the account this challenger belongs to.
 - **Display name**: The name that shows on the challenger's dashboard and in the challenger list when leaders are selecting someone to add to their queue. This property is customizable and will default to the associated account's username, but has fewer character restrictions. Display names are guaranteed to be unique.
-- **Bingo board**: A 2D array representing the challenger's board for signature bingo. As the set of leaders with each new PPL event, this property will be created the first time it's requested by a client rather than when a challenger is created so it can be cleared between events.
+- **Bingo board**: A 2D array representing the challenger's board for Signature Bingo.
 
 ## Leader
 
 A representation of a PPL gym leader, with the following properties:
 
-- **ID**: An ID for the leader which maps to the leader ID field of an account. Leader IDs are 6-byte hex strings (12 characters), are guaranteed to be unique, and have a one-to-many mapping to accounts to support multi-battle leaders.
+- **ID**: An ID for the leader. Leader IDs are 8-byte hex strings (16 characters), are guaranteed to be unique, and have a one-to-many mapping to accounts to support multi-battle leaders.
 - **Event:** The PPL event the leader belongs to.
+- **Account IDs**: An array of IDs of accounts this leader belongs to. This array will normally have a single entry, but it can have two for multi-battle leaders.
 - **Leader name**: The leader's full name, including the epithet (e.g. "Leopold, the Masterful Magician"). This property is immutable and is used for display on the leader's dashboard and the trainer card.
 - **Badge name**: The leader's badge name (e.g. "Illusion Emblem"). This property is immutable and is used for display on the leader's dashboard and the trainer card.
 - **Bio**: The leader's biographical blurb (example omitted because they're long). This property is immutable and is used for display on the leader's dashboard and the trainer card.
 - **Tagline**: The leader's badge tagline (e.g. "See through Leopold's trickery to earn the Illusion Emblem!"). This property is immutable and is used for display on the leader's dashboard and the trainer card.
 - **Battle difficulties**: The battle difficulty tiers the leader supports, represented by the `battleDifficulty` bitmask defined by the [battleDifficulty constant](#battledifficulty). This can be a single value from the bitmask or a combination of multiple values.
 - **Battle formats**: The battle formats the leader supports, represented by the `battleFormat` bitmask defined by the [battleFormat constant](#battleformat). This can be a single value from the bitmask or a combination of multiple values.
-- **Battle code**: A custom battle code that can be defined by the leader. If a code is set, it will be used for **all** of the leader's battles; otherwise, the system will generate random codes on a per-battle basis.
-- **Queue open**: A flag indicating whether the leader is currently accepting challengers. This flag is only dynamic for PPL Online events; for in-person events, it will always be `true`.
-- **Twitch handle**: The leader's Twitch username for linking to their stream if they're streaming battles. This field is only used for PPL Online events.
-- **Queue open text**: The leader's customized text for when they open their queue. This field is only used for PPL Online events and is optional; if specified, it overrides the default generic text that gets used otherwise.
-- **Queue close text**: The leader's customized text for when they close their queue. This field is only used for PPL Online events and is optional; if specified, it overrides the default generic text that gets used otherwise.
+- **Battle code**: A custom battle code that can be defined by the leader. If a code is set, it will be used for **all** of the leader's battles; otherwise, the system will use the randomly generated codes from the battle objects.
 
 ## Battle
 
@@ -100,6 +96,7 @@ A representation of a battle between a leader and a challenger, with the followi
 
 A representation of a report created by a leader about a challenger, with the following properties:
 
+- **ID:** An ID for the report which gets generated when the report is submitted. Unlike account, challenger, and leader IDs, these are simple numeric values.
 - **Event:** The PPL event the report is from.
 - **Challenger ID**: The ID of the challenger that the report concerns.
 - **Leader ID**: The ID of the leader filing the report.
@@ -110,7 +107,7 @@ A representation of a report created by a leader about a challenger, with the fo
 
 A representation of a PPL event, with the following properties:
 
-- **Event**: The specific PPL event; this can be one of 'East', 'West', 'Aus', and 'Online' (and 'South', if PAX South ever returns).
+- **Event**: The specific PPL event; this can be one of 'East', 'West', and 'Aus' (and 'South', if PAX South ever returns).
 - **Year**: The year for the PPL event, as a full 4-digit number (e.g. 2024).
 
 **Note:** This object exists more conceptually than concretely, and won't be used in any API responses. In the database and in request headers, events will be represented as a single hyphenated string (e.g. East-2024) for simpler keying.
@@ -123,11 +120,9 @@ A representation of a PPL event, with the following properties:
 
 Stores the data that backs the account object, with the following columns:
 
-- **id**: VARCHAR(16), non-null, primary key
+- **id**: VARCHAR(12), non-null, primary key
 - **username**: VARCHAR(30), non-null, unique
 - **password_hash**: VARCHAR(99), non-null
-- **challenger_id**: VARCHAR(12), non-null, unique
-- **leader_id**: VARCHAR(12), nullable
 - **permissions**: TINYINT(4), non-null
 - **registered_date_utc**: TIMESTAMP, non-null
 - **last_used_date_utc**: TIMESTAMP, non-null
@@ -137,8 +132,9 @@ Stores the data that backs the account object, with the following columns:
 
 Stores the data that backs the challenger object, with the following columns:
 
-- **id**: VARCHAR(12), non-null
+- **id**: VARCHAR(16), non-null
 - **ppl_event**: VARCHAR(15), non-null
+- **account_id**: VARCHAR(12), non-null, foreign key
 - **display_name**: VARCHAR(40), non-null
 
 **Constraints:**
@@ -148,21 +144,21 @@ Stores the data that backs the challenger object, with the following columns:
 
 ## ppl_webapp_bingo_boards
 
-Stores the data that backs boards for signature bingo, with the following columns:
+Stores the data that backs boards for Signature Bingo, with the following columns:
 
-- **challenger_id**: VARCHAR(12), non-null
-- **leader_id**: VARCHAR(12), non-null
+- **challenger_id**: VARCHAR(16), non-null
+- **leader_id**: VARCHAR(16), non-null
+- **ppl_event**: VARCHAR(15), non-null
 - **board_row**: TINYINT(4), non-null
 - **board_column**: TINYINT(4), non-null
-
-**Note:** The bingo board table provides no valuable historical data and is only useful during a PPL event. As such, it does **not** contain a column for the event key, with the expectation that it will be truncated between events. The other tables will retain their data for historical purposes, with the ability to filter on event when looking at metrics.
 
 ## ppl_webapp_leaders
 
 Stores the data that backs the leader object, with the following columns:
 
-- **id**: VARCHAR(12), non-null, primary key
+- **id**: VARCHAR(16), non-null, primary key
 - **ppl_event**: VARCHAR(15), non-null
+- **account_id**: VARCHAR(12), non-null, foreign key
 - **leader_name**: VARCHAR(80), non-null
 - **badge_name**: VARCHAR(40), non-null
 - **bio**: VARCHAR(800), non-null
@@ -170,11 +166,6 @@ Stores the data that backs the leader object, with the following columns:
 - **battle_difficulties**: TINYINT(4), non-null
 - **battle_formats**: TINYINT(4), non-null
 - **battle_code**: VARCHAR(9), nullable
-- **duo_mode**: TINYINT(1), non-null
-- **queue_open**: TINYINT(1), non-null
-- **twitch_handle**: VARCHAR(30), nullable
-- **queue_open_text**: VARCHAR(150), nullable
-- **queue_close_text**: VARCHAR(150), nullable
 
 ## ppl_webapp_battles
 
@@ -182,8 +173,8 @@ Stores the data that backs the battle object and drives both battle history and 
 
 - **id**: INT, non-null, primary key, autoincrement
 - **ppl_event**: VARCHAR(15), non-null
-- **challenger_id**: VARCHAR(12), non-null
-- **leader_id**: VARCHAR(12), non-null
+- **challenger_id**: VARCHAR(16), non-null
+- **leader_id**: VARCHAR(16), non-null
 - **battle_difficulty**: TINYINT(4), non-null
 - **battle_format**: TINYINT(4), non-null
 - **battle_status**: TINYINT(3), non-null
@@ -195,9 +186,10 @@ Stores the data that backs the battle object and drives both battle history and 
 
 Stores the data that backs the report object, with the following columns:
 
-- **challenger_id**: VARCHAR(12), non-null
+- **id**: INT, non-null, primary key, autoincrement
+- **challenger_id**: VARCHAR(16), non-null
+- **leader_id**: VARCHAR(16), non-null
 - **ppl_event**: VARCHAR(15), non-null
-- **leader_id**: VARCHAR(12), non-null
 - **notes**: VARCHAR(500), nullable
 - **reported_at_utc**: TIMESTAMP, non-null
 
@@ -220,10 +212,6 @@ Stores the data that backs the report object, with the following columns:
 
 The `error` property is a human-readable message that can be used for toasts, snackbars, or however else to inform users that a request failed and why. The `code` property is the internal value defined in the [resultCode constant](#resultcode) that the API uses and can generally be ignored by clients.
 
-### A note on /me
-
-Several resources described below use `/me` (rather than a more traditional `/{resource ID}`) for many of their operations. This was a deliberate design decision due to the way the account, challenger, and leader domain objects are linked. Since a login session will only **ever** have access to one account (the one the credentials belong to) and **either** one challenger or one leader (the one the account is linked to and has permissions for), there's never a situation in the scope of this API where a client should be able to request or manipulate specific account, challenger, or leader information that doesn't belong to them. By exposing those resources as `/me` instead of `/{resource ID}`, we avoid having to do additional checks on those endpoints (beyond the authentication/authorization checks in every logged-in request) to ensure the resource ID they're requesting is actually theirs.
-
 [Back to top](#table-of-contents)
 
 ## Custom Headers
@@ -235,7 +223,6 @@ A string indicating the event this request is for. The value should be formatted
 - `East`
 - `West`
 - `Aus`
-- `Online`
 
 For example, `East-2024` would be a valid value, but `East-24` or `South-2024` would not.
 
@@ -243,7 +230,7 @@ For example, `East-2024` would be a valid value, but `East-24` or `South-2024` w
 
 ## Authentication APIs
 
-### Resource: /api/accounts
+### Resource: /api/account
 
 The top-level resource for all account-related requests. This resource supports the following verbs:
 
@@ -269,77 +256,19 @@ Creates a new account using the provided username and password, along with an as
 
 ```json
 {
-    "id": "1234567890abcdef",
+    "accountId": "123456abcdef",
     "token": "216b89d8d1586a9532429c50149fa0d1"
 }
 ```
 
-The `id` and `token` fields in the response should be provided in headers for subsequent authenticated API calls.
+The `accountId` and `token` fields in the response should be provided in headers for subsequent authenticated API calls.
 
 ##### Possible error responses:
 
 - HTTP 400 (BAD REQUEST) - Returned if the Authorization header is omitted or malformed, or if the username is already in use.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/accounts/sessions
-
-The top-level resource for all session-related requests. This resource supports the following verbs:
-
-#### POST
-
-Creates a new session by logging in the user using the provided username and password. If the provided credentials are invalid, the request will be rejected.
-
-##### Required headers:
-
-- `Authorization` - Authentication header following the [Basic scheme](https://www.rfc-editor.org/rfc/rfc2617#section-2).
-- `PPL-Event` - A custom header defined [here](#ppl-event).
-
-##### Optional headers:
-
-- `Platform` - A string indicating the platform this request is coming from. Can be one of:
-    - `web`
-    - `android`
-    - `ios`
-
-**Note**: The `Platform` header will be populated as `none` if omitted or invalid. It may be made a required header in the future if and when we figure out push notification functionality.
-
-##### Response payload:
-
-```json
-{
-    "id": "1234567890abcdef",
-    "token": "216b89d8d1586a9532429c50149fa0d1"
-}
-```
-
-The `id` and `token` fields in the response should be provided in headers for subsequent authenticated API calls.
-
-##### Possible error responses:
-
-- HTTP 400 (BAD REQUEST) - Returned if the Authorization header is omitted or malformed.
-- HTTP 401 (UNAUTHORIZED) - Returned if the provided credentials are invalid.
-- HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
-
-### Sub-resource: /api/accounts/sessions/me
-
-The resource for managing the current logged-in user's session. This resource supports the following verbs:
-
-#### DELETE
-
-Terminates the current session, logging the user out. If one or both of the headers is omitted or malformed, this path simply does nothing rather than return an error.
-
-##### Required headers:
-
-- `Authorization` - Authentication header following the [Bearer scheme](https://www.rfc-editor.org/rfc/rfc6750#section-2.1).
-- `Account-ID` - The account ID for the logged-in user.
-
-##### Response payload:
-
-```json
-{}
-```
-
-### Sub-resource: /api/accounts/me
+### Sub-resource: /api/account/me
 
 The resource for managing the current logged-in user's account. This resource supports the following verbs:
 
@@ -362,8 +291,8 @@ Fetches a payload of account-related information, with links to other relevant r
         "isAdmin": false
     },
     "_links": {
-        "challengerInfo": "/api/challengers/me",
-        "leaderInfo": "/api/leaders/me"
+        "challengerInfo": "/api/challenger/{challengerId}",
+        "leaderInfo": "/api/leader/{leaderId}"
     }
 }
 ```
@@ -395,11 +324,69 @@ Terminates the account, preventing it from being logged into again and freeing u
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
+### Resource: /api/session
+
+The top-level resource for all session-related requests. This resource supports the following verbs:
+
+#### POST
+
+Creates a new session by logging in the user using the provided username and password. If the provided credentials are invalid, the request will be rejected.
+
+##### Required headers:
+
+- `Authorization` - Authentication header following the [Basic scheme](https://www.rfc-editor.org/rfc/rfc2617#section-2).
+- `PPL-Event` - A custom header defined [here](#ppl-event).
+
+##### Optional headers:
+
+- `Platform` - A string indicating the platform this request is coming from. Can be one of:
+    - `web`
+    - `android`
+    - `ios`
+
+**Note**: The `Platform` header will be populated as `none` if omitted or invalid. It may be made a required header in the future if and when we figure out push notification functionality.
+
+##### Response payload:
+
+```json
+{
+    "accountId": "123456abcdef",
+    "token": "216b89d8d1586a9532429c50149fa0d1"
+}
+```
+
+The `accountId` and `token` fields in the response should be provided in headers for subsequent authenticated API calls.
+
+##### Possible error responses:
+
+- HTTP 400 (BAD REQUEST) - Returned if the Authorization header is omitted or malformed.
+- HTTP 401 (UNAUTHORIZED) - Returned if the provided credentials are invalid.
+- HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
+
+### Sub-resource: /api/session/me
+
+The resource for managing the current logged-in user's session. This resource supports the following verbs:
+
+#### DELETE
+
+Terminates the current session, logging the user out. If one or both of the headers is omitted or malformed, this path simply does nothing rather than return an error.
+
+##### Required headers:
+
+- `Authorization` - Authentication header following the [Bearer scheme](https://www.rfc-editor.org/rfc/rfc6750#section-2.1).
+- `Account-ID` - The account ID for the logged-in user.
+
+##### Response payload:
+
+```json
+{}
+```
+
 [Back to top](#table-of-contents)
 
 ## Challenger APIs
 
-### Resource: /api/challengers
+### Resource: /api/challenger
 
 The top-level resource for all challenger-related requests. This resource supports the following verbs:
 
@@ -422,7 +409,7 @@ Fetches a full list of challengers associated with the PPL event specified in th
 {
     "challengers": [
         {
-            "id": "1a2b3c4d5e6f",
+            "id": "1a2b3c4d5e6f7890",
             "displayName": "Steeve"
         },
         ...
@@ -437,13 +424,13 @@ Fetches a full list of challengers associated with the PPL event specified in th
 - HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/challengers/me
+### Sub-resource: /api/challenger/:challengerId
 
 The resource for managing the current logged-in user's challenger information. This resource supports the following verbs:
 
 #### GET
 
-Fetches the challenger data for the logged-in user. If the user is a leader, the request will be rejected.
+Fetches the challenger data for the logged-in user. If the user is a leader, or the challenger ID in the request doesn't belong to the logged-in account, the request will be rejected.
 
 ##### Required headers:
 
@@ -454,13 +441,13 @@ Fetches the challenger data for the logged-in user. If the user is a leader, the
 
 ```json
 {
-    "id": "1a2b3c4d5e6f",
+    "id": "1a2b3c4d5e6f7890",
     "displayName": "Steeve",
     "_links": {
-        "bingoBoard": "/api/challengers/me/bingoboard",
-        "openBattles": "/api/battles/?challengerId=1a2b3c4d5e6f&format=queue",
-        "battleHistory": "/api/battles/?challengerId=1a2b3c4d5e6f&format=history",
-        "battleStats": "/api/battles/?challengerId=1a2b3c4d5e6f&format=stats",
+        "bingoBoard": "/api/challenger/1a2b3c4d5e6f7890/bingoboard",
+        "openBattles": "/api/battle/?challengerId=1a2b3c4d5e6f7890&format=queue",
+        "battleHistory": "/api/battle/?challengerId=1a2b3c4d5e6f7890&format=history",
+        "battleStats": "/api/battle/?challengerId=1a2b3c4d5e6f7890&format=stats",
         "feedbackSurvey": "https://forms.gle/..."
     }
 }
@@ -471,7 +458,7 @@ Fetches the challenger data for the logged-in user. If the user is a leader, the
 ##### Possible error responses:
 
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
-- HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader.
+- HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader, or if the challenger ID isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
 #### PUT
@@ -499,10 +486,10 @@ Updates the logged-in user's display name with the value provided in the request
 
 - HTTP 400 (BAD REQUEST) - Returned if the `displayName` parameter is invalid, omitted, or taken.
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
-- HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader.
+- HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader, or if the challenger ID isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/challengers/me/bingoboard
+### Sub-resource: /api/challenger/:challengerId/bingoboard
 
 The resource for managing the current logged-in user's bingo board. This resource supports the following verbs:
 
@@ -523,17 +510,17 @@ Fetches the logged-in user's bingo board. The board will be provided as a 2D arr
     "bingoBoard": [
         [
             {
-                "leaderId": "123456abcdef",
+                "leaderId": "1234567890abcdef",
                 "battled": true,
                 "_links": {
-                    "bingoAsset": "/static/bingo/123456abcdef.png"
+                    "bingoAsset": "/static/bingo/1234567890abcdef.png"
                 }
             },
             {
-                "leaderId": "abcdef123456",
+                "leaderId": "abcdef1234567890",
                 "battled": false,
                 "_links": {
-                    "bingoAsset": "/static/bingo/abcdef123456.png"
+                    "bingoAsset": "/static/bingo/abcdef1234567890.png"
                 }
             },
             ...
@@ -546,14 +533,14 @@ Fetches the logged-in user's bingo board. The board will be provided as a 2D arr
 ##### Possible error responses:
 
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
-- HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader.
+- HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader, or if the challenger ID isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
 [Back to top](#table-of-contents)
 
 ## Leader APIs
 
-### Resource: /api/leaders
+### Resource: /api/leader
 
 The top-level resource for all leader-related requests. This resource supports the following verbs:
 
@@ -567,17 +554,16 @@ Fetches a full list of leaders for the current PPL event. The primary use for th
 {
     "leaders": [
         {
-            "id": "123456abcdef",
+            "id": "1234567890abcdef",
             "leaderName": "Leopold, the Masterful Magician",
             "badgeName": "Illusion Emblem",
             "bio": "...",
             "tagline": "...",
             "battleDifficulties": 8,
             "battleFormats": 1,
-            "queueOpen": true,
             "_links": {
-                "portraitAsset": "/static/portraits/123456abcdef.png",
-                "badgeAsset": "/static/badges/123456abcdef.png"
+                "portraitAsset": "/static/portraits/1234567890abcdef.png",
+                "badgeAsset": "/static/badges/1234567890abcdef.png"
             }
         },
         ...
@@ -589,13 +575,13 @@ Fetches a full list of leaders for the current PPL event. The primary use for th
 
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/leaders/me
+### Sub-resource: /api/leader/:leaderId
 
 The resource for managing the current logged-in user's leader information. This resource supports the following verbs:
 
 #### GET
 
-Fetches the leader data for the logged-in user. If the user is not a leader, the request will be rejected.
+Fetches the leader data for the logged-in user. If the user is not a leader, or the leader ID in the request doesn't belong to the logged-in account, the request will be rejected.
 
 ##### Required headers:
 
@@ -606,13 +592,12 @@ Fetches the leader data for the logged-in user. If the user is not a leader, the
 
 ```json
 {
-    "id": "123456abcdef",
+    "id": "1234567890abcdef",
     "leaderName": "Leopold, the Masterful Magician",
-    "queueOpen": true,
     "_links": {
-        "openBattles": "/api/battles/?leaderId=123456abcdef&format=queue",
-        "battleHistory": "/api/battles/?leaderId=123456abcdef&format=history",
-        "battleStats": "/api/battles/?leaderId=123456abcdef&format=stats",
+        "openBattles": "/api/battle/?leaderId=1234567890abcdef&format=queue",
+        "battleHistory": "/api/battle/?leaderId=1234567890abcdef&format=history",
+        "battleStats": "/api/battle/?leaderId=1234567890abcdef&format=stats",
         "feedbackSurvey": "https://forms.gle/..."
     }
 }
@@ -623,12 +608,12 @@ Fetches the leader data for the logged-in user. If the user is not a leader, the
 ##### Possible error responses:
 
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
-- HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader.
+- HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader, or if the leader ID isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
 #### PUT
 
-Updates one or more of the leader's mutable properties based on the values provided in the request body. Those properties include the leader's queue state and a custom battle code. If an empty body is provided, the user attemps to change their queue state during an event where it's unsupported, the battle code is malformed, or the user is not a leader, the request will be rejected.
+Updates the leader's custom battle code. If an empty body is provided, the battle code is malformed, or the user is not a leader, the request will be rejected.
 
 ##### Required headers:
 
@@ -637,32 +622,30 @@ Updates one or more of the leader's mutable properties based on the values provi
 
 ##### Body parameters:
 
-- `queueOpen` - A flag indicating whether the leader is opening or closing their queue.
 - `battleCode` - An 8-digit numeric battle code, or an empty string to clear any existing custom code. If setting a code, the value **must** be exactly 8 characters long, all numeric.
 
 ##### Response payload:
 
 ```json
 {
-    "queueOpen": true,
     "battleCode": "1234 5678"
 }
 ```
 
-**Note:** Battle codes are saved internally with a space between each quartet of digits for better readability. The `battleCode` in the response payload will be formatted with the space, like the ones in the response payload for the `GET /api/battles` request, even though the request parameter requires that it be omitted.
+**Note:** Battle codes are saved internally with a space between each quartet of digits for better readability. The `battleCode` in the response payload will be formatted with the space, like the ones in the response payload for the `GET /api/battle` request, even though the request parameter requires that it be omitted.
 
 ##### Possible error responses:
 
 - HTTP 400 (BAD REQUEST) - Returned if the request body is empty or the provided `battleCode` parameter is malformed.
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
-- HTTP 403 (FORBIDDEN) - Returned if the current PPL event doesn't support queue state or if the request is made by a non-leader.
+- HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader, or if the leader ID isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
 [Back to top](#table-of-contents)
 
 ## Battle APIs
 
-### Resource: /api/battles
+### Resource: /api/battle
 
 The top-level resource for all battle-related requests. This resource supports the following verbs:
 
@@ -689,8 +672,8 @@ Fetches a list of battles based on the provided query parameters. The query para
     "battles": [
         {
             "id": 1,
-            "challengerId": "1a2b3c4d5e6f",
-            "leaderId": "123456abcdef",
+            "challengerId": "1a2b3c4d5e6f7890",
+            "leaderId": "1234567890abcdef",
             "battleDifficulty": 8,
             "battleFormat": 1,
             "battleStatus": 0,
@@ -710,8 +693,8 @@ Fetches a list of battles based on the provided query parameters. The query para
     "battles": [
         {
             "id": 1,
-            "challengerId": "1a2b3c4d5e6f",
-            "leaderId": "123456abcdef",
+            "challengerId": "1a2b3c4d5e6f7890",
+            "leaderId": "1234567890abcdef",
             "battleDifficulty": 8,
             "battleFormat": 1,
             "battleStatus": 3,
@@ -775,10 +758,10 @@ Creates a new battle using the parameters provided in the request body. If any r
 
 - HTTP 400 (BAD REQUEST) - Returned if the required parameters are omitted or invalid.
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
-- HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader.
+- HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader, or if the leader ID in the request body isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/battles/:battleId
+### Sub-resource: /api/battle/:battleId
 
 The resource for managing a specific battle. This resource supports the following verbs:
 
@@ -838,7 +821,7 @@ Cancels the battle, removing it from the queue. If the requesting user isn't a p
 
 ## Reporting APIs
 
-### Resource: /api/reports
+### Resource: /api/report
 
 The top-level resource for all report-related requests. This resource supports the following verbs:
 
@@ -861,11 +844,13 @@ Fetches a list of all the reports that have been made against challengers. If th
             "reportedBy": [
                 {
                     "leaderName": "Leopold, the Masterful Magician",
+                    "event": "East-2024",
                     "notes": "Got angry/aggressive when told his team violated the stall clause",
                     "reportedAtUtc": "2024-03-20T17:14:13.723Z"
                 },
                 {
                     "leaderName": "Leafa, the Steeper",
+                    "event": "East-2024",
                     "notes": "",
                     "reportedAtUtc": "2024-03-20T17:23:30.373Z"
                 },
@@ -944,7 +929,7 @@ Fetches a list of settings for the current event, along with links for any data 
         ...
     ],
     "_links": {
-        "trainerCard": "/api/leaders"
+        "trainerCard": "/api/leader"
         "rulesAsset": "/static/assets/rules.png",
         "prizesAsset": "/static/assets/prizes.png",
         "scheduleAsset": "/static/assets/schedule.png",
@@ -1051,7 +1036,7 @@ These are used to identify the current status of a battle in the battles databas
 
 #### battleDataFormat
 
-These are used to identify the requested format when a user requests calls the `GET /api/battles` resource, and are only used **internally** to the API. It's mapped to the string values passed in the query string for the request.
+These are used to identify the requested format when a user requests calls the `GET /api/battle` resource, and are only used **internally** to the API. It's mapped to the string values passed in the query string for the request.
 ```json
 {
     "queue": 0,
