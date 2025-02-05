@@ -108,9 +108,9 @@ A representation of a report created by a leader about a challenger, with the fo
 A representation of a PPL event, with the following properties:
 
 - **Event**: The specific PPL event; this can be one of 'East', 'West', and 'Aus' (and 'South', if PAX South ever returns).
-- **Year**: The year for the PPL event, as a full 4-digit number (e.g. 2024).
+- **Year**: The year for the PPL event, as a full 4-digit number (e.g. 2025).
 
-**Note:** This object exists more conceptually than concretely, and won't be used in any API responses. In the database and in request headers, events will be represented as a single hyphenated string (e.g. East-2024) for simpler keying.
+**Note:** This object exists more conceptually than concretely, and won't be used in any API responses. In the database and in request headers, events will be represented as a single hyphenated string (e.g. East-2025) for simpler keying.
 
 [Back to top](#table-of-contents)
 
@@ -224,13 +224,13 @@ A string indicating the event this request is for. The value should be formatted
 - `West`
 - `Aus`
 
-For example, `East-2024` would be a valid value, but `East-24` or `South-2024` would not.
+For example, `East-2025` would be a valid value, but `East-25` or `South-2025` would not.
 
 [Back to top](#table-of-contents)
 
 ## Authentication APIs
 
-### Resource: /api/account
+### Resource: /api/v3/account
 
 The top-level resource for all account-related requests. This resource supports the following verbs:
 
@@ -268,7 +268,7 @@ The `accountId` and `token` fields in the response should be provided in headers
 - HTTP 400 (BAD REQUEST) - Returned if the Authorization header is omitted or malformed, or if the username is already in use.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/account/me
+### Sub-resource: /api/v3/account/me
 
 The resource for managing the current logged-in user's account. This resource supports the following verbs:
 
@@ -291,13 +291,12 @@ Fetches a payload of account-related information, with links to other relevant r
         "isAdmin": false
     },
     "_links": {
-        "challengerInfo": "/api/challenger/{challengerId}",
-        "leaderInfo": "/api/leader/{leaderId}"
+        "info": "/api/v3/challenger/{challengerId}",
     }
 }
 ```
 
-**Note:** The `_links` property will only ever contain **one** of the two properties detailed above, depending on whether or not the account is a leader.
+**Note:** The `info` property contained within the `_links` property will be populated with either a link to challenger or leader info, depending on the permissions above.
 
 ##### Possible error responses:
 
@@ -324,7 +323,7 @@ Terminates the account, preventing it from being logged into again and freeing u
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Resource: /api/session
+### Resource: /api/v3/session
 
 The top-level resource for all session-related requests. This resource supports the following verbs:
 
@@ -363,7 +362,7 @@ The `accountId` and `token` fields in the response should be provided in headers
 - HTTP 401 (UNAUTHORIZED) - Returned if the provided credentials are invalid.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/session/me
+### Sub-resource: /api/v3/session/me
 
 The resource for managing the current logged-in user's session. This resource supports the following verbs:
 
@@ -386,17 +385,13 @@ Terminates the current session, logging the user out. If one or both of the head
 
 ## Challenger APIs
 
-### Resource: /api/challenger
+### Resource: /api/v3/challenger
 
 The top-level resource for all challenger-related requests. This resource supports the following verbs:
 
 #### GET
 
-Fetches a full list of challengers associated with the PPL event specified in the query parameters. The primary use for this resource is pulling a list of challengers so the leader view can populate a dropdown for adding challengers to their queue.
-
-##### Query parameters:
-
-- `event` - A string indicating the event this request is for. Uses the same format as the `PPL-Event` header used in registration and login, defined [here](#ppl-event).
+Fetches a full list of challengers associated with the PPL event for the session. The primary use for this resource is pulling a list of challengers so the leader view can populate a dropdown for adding challengers to their queue.
 
 ##### Required headers:
 
@@ -409,7 +404,7 @@ Fetches a full list of challengers associated with the PPL event specified in th
 {
     "challengers": [
         {
-            "id": "1a2b3c4d5e6f7890",
+            "challengerId": "1a2b3c4d5e6f7890",
             "displayName": "Steeve"
         },
         ...
@@ -424,7 +419,7 @@ Fetches a full list of challengers associated with the PPL event specified in th
 - HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/challenger/:challengerId
+### Sub-resource: /api/v3/challenger/:challengerId
 
 The resource for managing the current logged-in user's challenger information. This resource supports the following verbs:
 
@@ -441,13 +436,12 @@ Fetches the challenger data for the logged-in user. If the user is a leader, or 
 
 ```json
 {
-    "id": "1a2b3c4d5e6f7890",
     "displayName": "Steeve",
     "_links": {
-        "bingoBoard": "/api/challenger/1a2b3c4d5e6f7890/bingoboard",
-        "openBattles": "/api/battle/?challengerId=1a2b3c4d5e6f7890&format=queue",
-        "battleHistory": "/api/battle/?challengerId=1a2b3c4d5e6f7890&format=history",
-        "battleStats": "/api/battle/?challengerId=1a2b3c4d5e6f7890&format=stats",
+        "bingoBoard": "/api/v3/challenger/1a2b3c4d5e6f7890/bingoboard",
+        "openBattles": "/api/v3/battle/?challengerId=1a2b3c4d5e6f7890&format=queue",
+        "battleHistory": "/api/v3/battle/?challengerId=1a2b3c4d5e6f7890&format=history",
+        "battleStats": "/api/v3/battle/?challengerId=1a2b3c4d5e6f7890&format=stats",
         "feedbackSurvey": "https://forms.gle/..."
     }
 }
@@ -489,7 +483,7 @@ Updates the logged-in user's display name with the value provided in the request
 - HTTP 403 (FORBIDDEN) - Returned if the request is made by a leader, or if the challenger ID isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/challenger/:challengerId/bingoboard
+### Sub-resource: /api/v3/challenger/:challengerId/bingoboard
 
 The resource for managing the current logged-in user's bingo board. This resource supports the following verbs:
 
@@ -540,13 +534,17 @@ Fetches the logged-in user's bingo board. The board will be provided as a 2D arr
 
 ## Leader APIs
 
-### Resource: /api/leader
+### Resource: /api/v3/leader
 
 The top-level resource for all leader-related requests. This resource supports the following verbs:
 
 #### GET
 
-Fetches a full list of leaders for the current PPL event. The primary use for this resource is pulling a list of leaders for display on the digital trainer card. Because the trainer card is visible even on the logged-out view, this GET request **does not require authentication**. The `battleDifficulties` and `battleFormats` fields in the response will be populated with values defined in the [constants](#constants) section below.
+Fetches a full list of leaders for the PPL event specified in the request header. The primary use for this resource is pulling a list of leaders for display on the digital trainer card. Because the trainer card is visible even on the logged-out view, this GET request **does not require authentication**. The `battleDifficulties` and `battleFormats` fields in the response will be populated with values defined in the [constants](#constants) section below. The query parameter is **required** and the request will be rejected if it's omitted or invalid.
+
+##### Required headers:
+
+- `PPL-Event` - A custom header defined [here](#ppl-event).
 
 ##### Response payload:
 
@@ -573,9 +571,10 @@ Fetches a full list of leaders for the current PPL event. The primary use for th
 
 ##### Possible error responses:
 
+- HTTP 400 (BAD REQUEST) - Returned if the `PPL-Event` header is invalid or omitted.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/leader/:leaderId
+### Sub-resource: /api/v3/leader/:leaderId
 
 The resource for managing the current logged-in user's leader information. This resource supports the following verbs:
 
@@ -595,9 +594,9 @@ Fetches the leader data for the logged-in user. If the user is not a leader, or 
     "id": "1234567890abcdef",
     "leaderName": "Leopold, the Masterful Magician",
     "_links": {
-        "openBattles": "/api/battle/?leaderId=1234567890abcdef&format=queue",
-        "battleHistory": "/api/battle/?leaderId=1234567890abcdef&format=history",
-        "battleStats": "/api/battle/?leaderId=1234567890abcdef&format=stats",
+        "openBattles": "/api/v3/battle/?leaderId=1234567890abcdef&format=queue",
+        "battleHistory": "/api/v3/battle/?leaderId=1234567890abcdef&format=history",
+        "battleStats": "/api/v3/battle/?leaderId=1234567890abcdef&format=stats",
         "feedbackSurvey": "https://forms.gle/..."
     }
 }
@@ -632,7 +631,7 @@ Updates the leader's custom battle code. If an empty body is provided, the battl
 }
 ```
 
-**Note:** Battle codes are saved internally with a space between each quartet of digits for better readability. The `battleCode` in the response payload will be formatted with the space, like the ones in the response payload for the `GET /api/battle` request, even though the request parameter requires that it be omitted.
+**Note:** Battle codes are saved internally with a space between each quartet of digits for better readability. The `battleCode` in the response payload will be formatted with the space, like the ones in the response payload for the `GET /api/v3/battle` request, even though the request parameter requires that it be omitted.
 
 ##### Possible error responses:
 
@@ -645,7 +644,7 @@ Updates the leader's custom battle code. If an empty body is provided, the battl
 
 ## Battle APIs
 
-### Resource: /api/battle
+### Resource: /api/v3/battle
 
 The top-level resource for all battle-related requests. This resource supports the following verbs:
 
@@ -728,6 +727,7 @@ Fetches a list of battles based on the provided query parameters. The query para
 
 - HTTP 400 (BAD REQUEST) - Returned if the required parameters are omitted or invalid.
 - HTTP 401 (UNAUTHORIZED) - Returned if either header is omitted or malformed, or if session validation fails.
+- HTTP 403 (FORBIDDEN) - Returned if the leader or challenger ID in the query string isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
 #### POST
@@ -761,7 +761,7 @@ Creates a new battle using the parameters provided in the request body. If any r
 - HTTP 403 (FORBIDDEN) - Returned if the request is made by a non-leader, or if the leader ID in the request body isn't associated with the logged-in account.
 - HTTP 500 (SERVER ERROR) - Returned if an internal error occurs.
 
-### Sub-resource: /api/battle/:battleId
+### Sub-resource: /api/v3/battle/:battleId
 
 The resource for managing a specific battle. This resource supports the following verbs:
 
@@ -821,7 +821,7 @@ Cancels the battle, removing it from the queue. If the requesting user isn't a p
 
 ## Reporting APIs
 
-### Resource: /api/report
+### Resource: /api/v3/report
 
 The top-level resource for all report-related requests. This resource supports the following verbs:
 
@@ -844,13 +844,13 @@ Fetches a list of all the reports that have been made against challengers. If th
             "reportedBy": [
                 {
                     "leaderName": "Leopold, the Masterful Magician",
-                    "event": "East-2024",
+                    "event": "East-2025",
                     "notes": "Got angry/aggressive when told his team violated the stall clause",
                     "reportedAtUtc": "2024-03-20T17:14:13.723Z"
                 },
                 {
                     "leaderName": "Leafa, the Steeper",
-                    "event": "East-2024",
+                    "event": "East-2025",
                     "notes": "",
                     "reportedAtUtc": "2024-03-20T17:23:30.373Z"
                 },
@@ -900,13 +900,17 @@ Creates a new report using the challenger ID provided in the request body. If no
 
 ## Other APIs
 
-### Resource: /api/settings
+### Resource: /api/v3/settings
 
 The top-level resource for all settings-related requests. This resource supports the following verbs:
 
 #### GET
 
-Fetches a list of settings for the current event, along with links for any data that should be visible for a logged-out view (e.g. trainer card, league info, prizes).
+Fetches a list of settings for the PPL event specified in the request header, along with links for any data that should be visible for a logged-out view (e.g. trainer card, league info, prizes).
+
+##### Required headers:
+
+- `PPL-Event` - A custom header defined [here](#ppl-event).
 
 ##### Response payload:
 
@@ -929,7 +933,7 @@ Fetches a list of settings for the current event, along with links for any data 
         ...
     ],
     "_links": {
-        "trainerCard": "/api/leader"
+        "trainerCard": "/api/v3/leader"
         "rulesAsset": "/static/assets/rules.png",
         "prizesAsset": "/static/assets/prizes.png",
         "scheduleAsset": "/static/assets/schedule.png",
@@ -1036,7 +1040,7 @@ These are used to identify the current status of a battle in the battles databas
 
 #### battleDataFormat
 
-These are used to identify the requested format when a user requests calls the `GET /api/battle` resource, and are only used **internally** to the API. It's mapped to the string values passed in the query string for the request.
+These are used to identify the requested format when a user requests calls the `GET /api/v3/battle` resource, and are only used **internally** to the API. It's mapped to the string values passed in the query string for the request.
 ```json
 {
     "queue": 0,
